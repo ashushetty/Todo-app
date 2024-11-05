@@ -1,115 +1,149 @@
-import Image from "next/image";
-import localFont from "next/font/local";
+import {useState, useEffect } from 'react';
+import {Check} from 'lucide-react';
+import Head from 'next/head';
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
 
-export default function Home() {
-  return (
-    <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/pages/index.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+export default function Home(){
+  const[todos, setTodos]= useState([]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  const[newTodo, setNewTodo]= useState('');
+
+  useEffect(()=>{
+    const savedTodos= localStorage.getItem('todos');
+    if(savedTodos){
+      try{
+      setTodos(JSON.parse(savedTodos));
+    }catch(error){
+      console.error('Error loading todos:',error);
+      setTodos([]);
+    }
+  } 
+  
+},[]);
+
+useEffect(()=>{
+  localStorage.setItem('todos',JSON.stringify(todos));
+
+},[todos]);
+
+//Adds new todo
+const handleSubmit = (e) =>{
+  if(!newTodo.trim()) return ;
+
+  const newTodoItem ={
+    id:Date.now(),
+    text:newTodo.trim(),
+    completed:false
+  };
+
+  setTodos(prevTodos=>[...prevTodos,newTodoItem]);
+  setNewTodo('');
+
+};
+
+//Todo completion
+const toggleTodo=(id)=>{
+  setTodos(prevTodos =>
+    prevTodos.map(todo =>
+      todo.id === id ? {...todo, completed: !todo.completed }
+      : todo
+    )
   );
+
+};
+
+//Clear all
+const clearAll= () =>{
+  setTodos([]);
+};
+
+
+return(
+  <>
+    <Head>
+      <title>Todo List</title>
+      <meta name="description" content="Simple todo list application"/>
+      <meta name="viewport" content="widht=device-width, initiial-scale=1" />
+
+    </Head>
+
+    <main className='min-h-screen bg-gray-50 p-4'>
+      <div className='max-w-2xl mx-auto bg-white rounded-3xl shadow-sm p-8'>
+        <h1 className='text-4xl font-bold text-[#1E2B4D] mb-8'>
+          To Do List
+          </h1>
+
+        <form onSubmit={handleSubmit} >
+          <input
+            type="text"
+            value={newTodo}
+            onChange={(e)=> setNewTodo(e.target.value)}
+            placeholder="Add new list item"
+            className='flex-1 p-3 border border-gray-200 rounded-lg
+                      focus:ouline-none focus:ring-2 focus:ring-blue-500
+                      placeholder-gray-400 mr-2'
+       
+          />
+          <button
+            type="submit"
+            disabled={!newTodo.trim()}
+            className='px-8 py-3 bg-blue-500 text-white font-medium rounded-lg
+                      hover;bg-blue-600 transition-colors
+                      disabled:bg-blue-300 disabled:cursor-text-not-allowed'
+            >
+              Add
+            </button>   
+      
+
+        </form>
+
+        <ul className='space-y-4 '>
+          {todos.map(todo=>(
+            <li
+              key={todo.id}
+              className='flex items-center py-2 gap-3 group'
+              >
+                <button
+                  onClick={()=> toggleTodo(todo.id)}
+                  className={`w-6 h-6 rounded-full border-2 flex items-center
+                            justify-center transition-colors
+                            ${todo.completed
+                              ? 'bg-emerald400 border-emerald-400'
+                              : 'border-gray-200 hover:border-blue-500'
+                            }`}
+                  aria-label={`Mark "${todo.text}" as ${todo.completed ? 'incomple' : 'complete '}`}
+                >
+                  {todo.completed && <Check size={16} color='white' />}
+                </button>
+                <span
+                  className={`flex-1 transition-colors
+                  ${todo.completed
+                   ? 'line-through text-gray-400'
+                   :'text-[#1E2B4D]'
+                  
+                }`}
+                >
+                  {todo.text}
+                  </span>
+              </li>
+
+          ))}
+        </ul>
+
+        <div className='mt-8 flex justify-between items-center text-gray-400'>
+          <span>{todos.length} items </span>
+          <button
+            onClick={clearAll}
+            className='hover:text-gray-600 transition-colors'
+            disabled={todos.length === 0}
+            >
+               Clear All 
+            </button>
+        </div>
+
+      </div>
+    </main>
+  
+  </>
+)
 }
